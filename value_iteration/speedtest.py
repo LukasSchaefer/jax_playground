@@ -16,7 +16,7 @@ def plot_times(num_statess, np_times, jax_times, torch_cpu_times, torch_gpu_time
     plt.ylabel("Time (s)")
     plt.legend()
     # plt.yscale("log")
-    plt.savefig("value_iteration_speedtest.pdf")
+    plt.savefig("value_iteration_speedtest.jpg")
 
 
 if __name__ == "__main__":
