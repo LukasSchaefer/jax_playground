@@ -10,6 +10,7 @@ import torch
 
 GAMMA = 0.9
 THETA = 1e-15
+ROUNDS = 3
 
 
 def generate_random_mdp(num_states, num_actions):
@@ -62,6 +63,7 @@ def value_iteration_numpy(transitions, rewards, gamma=GAMMA, theta=THETA):
     return policy, value
 
 
+@torch.compile
 def value_iteration_torch(transitions, rewards, device, gamma=GAMMA, theta=THETA):
     """
     Performs value iteration on the given MDP.
@@ -79,8 +81,8 @@ def value_iteration_torch(transitions, rewards, device, gamma=GAMMA, theta=THETA
     num_states, num_actions, _ = transitions.shape
 
     # convert to torch tensors
-    transitions = torch.tensor(transitions, device=device)
-    rewards = torch.tensor(rewards, device=device)
+    transitions_torch = torch.tensor(transitions, device=device)
+    rewards_torch = torch.tensor(rewards, device=device)
 
     # Initialize value function
     value = torch.zeros(num_states, device=device)
@@ -88,12 +90,12 @@ def value_iteration_torch(transitions, rewards, device, gamma=GAMMA, theta=THETA
     delta = float("inf")
     while delta >= theta:
         # Compute the value function
-        value_new = torch.max(torch.sum(transitions * (rewards + gamma * value), dim=-1), dim=-1)[0]
+        value_new = torch.max(torch.sum(transitions_torch * (rewards_torch + gamma * value), dim=-1), dim=-1)[0]
         delta = torch.max((value_new - value).abs())
         value = value_new
 
     # Compute the policy
-    policy = torch.argmax(torch.sum(transitions * (rewards + gamma * value), dim=-1), dim=-1)
+    policy = torch.argmax(torch.sum(transitions_torch * (rewards_torch + gamma * value), dim=-1), dim=-1)
 
     return policy.detach().cpu().numpy(), value.detach().cpu().numpy()
 
@@ -169,27 +171,31 @@ if __name__ == "__main__":
     print()
 
     print("Value Iteration (Torch CPU)")
-    start = time.time()
-    policy, value = value_iteration_torch(transition_function, reward_function, device="cpu")
-    end = time.time()
-    print(f"Time taken: {end - start:.3f}s")
-    print(f"Policy: {policy}")
-    print(f"Value: {value}")
-    print()
+    for round in range(ROUNDS):
+        print(f"\tRound {round}:")
+        start = time.time()
+        policy, value = value_iteration_torch(transition_function, reward_function, device="cpu")
+        end = time.time()
+        print(f"\tTime taken: {end - start:.3f}s")
+        print(f"\tPolicy: {policy}")
+        print(f"\tValue: {value}")
+        print()
 
     print("Value Iteration (Torch CUDA)")
-    start = time.time()
-    policy, value = value_iteration_torch(transition_function, reward_function, device="cuda")
-    end = time.time()
-    print(f"Time taken: {end - start:.3f}s")
-    print(f"Policy: {policy}")
-    print(f"Value: {value}")
-    print()
+    for round in range(ROUNDS):
+        print(f"\tRound {round}:")
+        start = time.time()
+        policy, value = value_iteration_torch(transition_function, reward_function, device="cuda")
+        end = time.time()
+        print(f"\tTime taken: {end - start:.3f}s")
+        print(f"\tPolicy: {policy}")
+        print(f"\tValue: {value}")
+        print()
     print("----------------------------------------")
     print()
 
     print("Value Iteration (Jax)")
-    for round in range(3):
+    for round in range(ROUNDS):
         print(f"\tRound {round}:")
         start = time.time()
         policy, value = value_iteration_jax(transition_function, reward_function, gamma=0.9)

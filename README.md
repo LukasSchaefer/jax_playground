@@ -6,3 +6,5 @@ Speedtests are conducted on a Ubuntu system with a Intel® Core™ i7-10750H CPU
 
 ## Value Iteration
 ![Image showing the execution time of value iteration on MDPs of varying number of states with numpy, torch, and jax.](value_iteration/value_iteration_speedtest.jpg "Value Iteration Speedtest")
+
+![Image showing the execution time of value iteration on MDPs of varying number of states with torch and jax on GPU only.](value_iteration/value_iteration_speedtest_gpu_only.jpg "Value Iteration Speedtest (GPU only)")
